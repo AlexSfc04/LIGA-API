@@ -1,0 +1,234 @@
+openapi: 3.0.4
+info:
+  title: Liga API - Teams
+  description: Operaciones CRUD para la gestión de equipos de fútbol
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de desarrollo
+
+paths:
+  /teams:
+    get:
+      summary: Obtener todos los equipos
+      operationId: getTeams
+      tags:
+        - Teams
+      responses:
+        "200":
+          description: Lista de equipos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+
+    post:
+      summary: Crear un nuevo equipo
+      operationId: createTeam
+      tags:
+        - Teams
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInput"
+      responses:
+        "201":
+          description: Equipo creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /teams/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID del equipo (ObjectId de MongoDB)
+        schema:
+          type: string
+          example: "64b8f3c2a1d2e3f456789abc"
+
+    get:
+      summary: Obtener un equipo por ID
+      operationId: getTeamById
+      tags:
+        - Teams
+      responses:
+        "200":
+          description: Equipo encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "404":
+          description: Equipo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "400":
+          description: ID no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+
+    put:
+      summary: Actualizar un equipo por ID
+      operationId: updateTeam
+      tags:
+        - Teams
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInput"
+      responses:
+        "200":
+          description: Equipo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          description: Error de validación o ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "404":
+          description: Equipo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+
+    delete:
+      summary: Eliminar un equipo por ID
+      operationId: deleteTeam
+      tags:
+        - Teams
+      responses:
+        "200":
+          description: Equipo eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Equipo eliminado."
+        "404":
+          description: Equipo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+
+components:
+  schemas:
+    Team:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64b8f3c2a1d2e3f456789abc"
+        name:
+          type: string
+          minLength: 3
+          maxLength: 40
+          example: "Real Sama"
+        city:
+          type: string
+          minLength: 2
+          maxLength: 40
+          example: "Sama"
+        category:
+          type: string
+          enum: [primera, segunda, tercera]
+          example: "primera"
+        foundedYear:
+          type: integer
+          minimum: 1850
+          maximum: 2026
+          example: 1920
+        isActive:
+          type: boolean
+          default: true
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TeamInput:
+      type: object
+      required:
+        - name
+        - city
+        - category
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 40
+          example: "Real Sama"
+        city:
+          type: string
+          minLength: 2
+          maxLength: 40
+          example: "Sama"
+        category:
+          type: string
+          enum: [primera, segunda, tercera]
+          example: "primera"
+        foundedYear:
+          type: integer
+          minimum: 1850
+          maximum: 2026
+          example: 1920
+        isActive:
+          type: boolean
+          default: true
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Validación fallida."
+        details:
+          type: array
+          items:
+            type: string
+          example: ["El nombre del equipo es obligatorio."]
+
+    NotFoundError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Equipo no encontrado."
+
+    BadRequestError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "ID no válido."
